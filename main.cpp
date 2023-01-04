@@ -19,6 +19,7 @@ static void print_usage() {
     return;
 }
 
+
 int main(int argc, char **argv) {
     AVOutputFormat *ofmt = NULL;
     AVFormatContext *ifmt_ctx = NULL;
