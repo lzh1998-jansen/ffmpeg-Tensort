@@ -36,17 +36,18 @@ static void print_usage()
 }
 int main(int argc,char **argv)
 {
+    cout<<"argc"<<argc<<endl;
+    cout<<"argv"<<argv<<endl;
     AVOutputFormat *ofmt = NULL;
-    AVFormatContext *ifmt_ctx = NULL,*ofmt_ctx = NULL;
+    AVFormatContext *ifmt_ctx = NULL;
+    AVFormatContext *ofmt_ctx = NULL;
     AVPacket pkt;
     char in_filename[128] = {0}, out_filename[128] = {0};
     int ret,i;
     int video_index=-1;
     int frame_index=0;
     int I_received = 0;
-
     int opt, frames_count = -1;
-
     while ((opt = getopt(argc, argv, OPTS)) != -1) {
         switch (opt) {
             case 'i':
