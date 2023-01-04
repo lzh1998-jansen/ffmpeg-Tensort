@@ -1,0 +1,11 @@
+# ninja log v5
+7	723	6944503466966020	CMakeFiles/clion_test.dir/main.cpp.obj	e3cbb924b1fa11d0
+18	796	6944975172217469	CMakeFiles/clion_test.dir/rtsp.cpp.obj	6be420f4f88e9e2
+3693	4061	6944171633842372	clion_test.exe	6a56b648682b605e
+1	400	6944976721203204	build.ninja	ec1b39a3590f910e
+724	895	6944503468565113	../workspace/clion_test.exe	7220cf2d82da3a44
+29	2530	6944975191029344	CMakeFiles/clion_test.dir/hello.cpp.obj	3846249b5bbb679c
+11	2312	6944978542212313	CMakeFiles/clion_test.dir/main.cpp.obj	4b944dd90eb4c46f
+2315	3529	6944978554246293	../workspace/clion_test.exe	c39a7b56291c22da
+16	1345	6944979906089422	CMakeFiles/clion_test.dir/main.cpp.obj	4b944dd90eb4c46f
+1348	2027	6944979912759627	../workspace/clion_test.exe	c39a7b56291c22da

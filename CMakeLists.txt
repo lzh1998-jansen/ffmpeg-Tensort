@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.23)
+project(clion_test)
+
+set(CMAKE_CXX_STANDARD 14)
+
+#set(OpenCV_DIR "F:\\OpenCV-3.4.16\\opencv-3.4.16\\build_x64")
+#find_package(OpenCV REQUIRED)
+#include_directories(${OpenCV_INCLUDE_DIRS})
+#message(${OpenCV_INCLUDE_DIRS})
+include_directories(F:\\leecode\\ffmpeg-n4.4-latest-win64-lgpl-shared-4.4\\include)
+link_directories(F:\\leecode\\ffmpeg-n4.4-latest-win64-lgpl-shared-4.4\\lib)
+add_executable(clion_test main.cpp rtsp.cpp hello.h hello.cpp)
+#set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs)
+#target_link_libraries(clion_test ${OpenCV_LIBS} )
+target_link_libraries(clion_test avcodec avfilter avformat  avutil swscale avdevice)
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/workspace)
