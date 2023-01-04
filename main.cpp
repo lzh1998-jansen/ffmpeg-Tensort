@@ -7,27 +7,10 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libavutil/avutil.h>
 }
-
-#include "hello.h"
 #include <unistd.h>
 //using namespace cv;
 using namespace std;
 
-//int main() {
-//    hello("asd");
-//    std::cout << "Hello, World!" << std::endl;
-////    Mat image;
-////    image= imread("F:\\leecode\\cv\\stream_analysis\\clion_test\\1.png");
-////    namedWindow("显示图片", WINDOW_AUTOSIZE);
-////    imshow("显示图片", image);
-////    waitKey(0);
-////    destroyAllWindows();
-//    char in_filename[128] = {1}, out_filename[128] = {0};
-//    cout<<in_filename<<endl;
-//    cout<<"out-filename"<<out_filename<<endl;
-//
-//    return 0;
-//}
 #define USAGE   "rtsp2x -i <rtsp url> -t [avi | flv | mp4] -n <number of frames you want to save>"
 #define OPTS    "i:t:n:h"
 
@@ -37,9 +20,6 @@ static void print_usage() {
 }
 
 int main(int argc, char **argv) {
-    cout << "argc" << argc << endl;
-    cout << "argv" << argv << endl;
-    cout << "test" << endl;
     AVOutputFormat *ofmt = NULL;
     AVFormatContext *ifmt_ctx = NULL;
     AVFormatContext *ofmt_ctx = NULL;
