@@ -1,11 +1,15 @@
 #include <iostream>
 //#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libavutil/time.h"
 #include <libswscale/swscale.h>
 #include <libavutil/avutil.h>
+#include "libavutil/imgutils.h"
 }
 #include <unistd.h>
 //using namespace cv;
@@ -82,12 +86,16 @@ int main(int argc, char **argv) {
     //打开输入流
     if ((ret = avformat_open_input(&ifmt_ctx, in_filename, 0, &avdic)) < 0) {
         printf("Could not open input file.\n");
-        goto end;
+        //goto end;
+        return -1;
     }
     if ((ret = avformat_find_stream_info(ifmt_ctx, 0)) < 0) {
         printf("Failed to retrieve input stream information\n");
-        goto end;
+        //goto end;
+        return -1;
     }
+    av_dump_format(ifmt_ctx, 0, in_filename, 0);
+
     //nb_streams代表有几路流，一般是2路：即音频和视频，顺序不一定
     for (i = 0; i < ifmt_ctx->nb_streams; i++) {
 
@@ -97,8 +105,85 @@ int main(int argc, char **argv) {
             break;
         }
     }
+    AVCodecParameters *codecParameters = ifmt_ctx->streams[video_index]->codecpar;
+    printf("video width %d\n",codecParameters->width);
+    printf("video height %d\n",codecParameters->height);
+    AVCodec *pcodec = avcodec_find_decoder(codecParameters->codec_id);
+    AVCodecContext *pcodecCtx = avcodec_alloc_context3(pcodec);
+    //打开编码器
+    ret = avcodec_open2(pcodecCtx, pcodec, NULL);
+    if (ret < 0){
+        printf("can not open codec .\n");
+        return -1;
+    }
 
-    av_dump_format(ifmt_ctx, 0, in_filename, 0);
+    AVFrame *picture =av_frame_alloc();
+    picture->width = codecParameters->width;
+    picture->height = codecParameters->height;
+//    picture->format = AV_PIX_FMT_YUV420P;
+    picture->format = AV_PIX_FMT_YUV420P;
+    ret = av_frame_get_buffer(picture, 1);
+
+    if (ret < 0){
+        printf("av_frame_get_buffer errror");
+        return -1;
+    }
+    printf("picture->linesize[0] %d\n", picture->linesize[0]);
+
+    AVFrame *pFrame = av_frame_alloc();
+    pFrame->width = codecParameters->width;
+    pFrame->height = codecParameters->height;
+    pFrame->format = AV_PIX_FMT_YUV420P;
+    ret = av_frame_get_buffer(pFrame, 1);
+    if (ret < 0) {
+        printf("av_frame_get_buffer error\n");
+        return -1;
+    }
+
+    AVFrame *pFrameRGB = av_frame_alloc();
+    pFrameRGB->width = codecParameters->width;
+    pFrameRGB->height = codecParameters->height;
+    //AV_PIX_FMT_BGR24;
+    pFrameRGB->format = AV_PIX_FMT_RGB24;
+    ret = av_frame_get_buffer(pFrameRGB, 1);
+    if(ret < 0 ){
+        printf("av_frame_getbuffer error");
+        return -1;
+    }
+    //计算这个格式的图片，需要多少字节来存储
+    int picture_size = av_image_get_buffer_size(AV_PIX_FMT_NV21, codecParameters->width, codecParameters->height, 1);
+    uint8_t *out_buff = (uint8_t *) av_malloc(picture_size * sizeof(uint8_t));
+    av_image_fill_arrays(picture->data, picture->linesize, out_buff, AV_PIX_FMT_NV21, picture->width, picture->height,1);
+    //这个函数 是缓存转换格式，可以不用 以为上面已经设置了AV_PIX_FMT_NV21
+    SwsContext *img_convert_ctx = sws_getContext(codecParameters->width, codecParameters->height, AV_PIX_FMT_NV21,
+                                                 codecParameters->width, codecParameters->height, AV_PIX_FMT_RGB24, 4,
+                                                 NULL, NULL, NULL);
+    AVPacket *packet = (AVPacket *) av_malloc(sizeof(AVPacket));
+    while (av_read_frame(ifmt_ctx, packet) >= 0) {
+        if (packet->stream_index == video_index) {
+            ret = avcodec_send_packet(pcodecCtx, packet);
+            if(ret < 0){
+                printf("avcodec_send_packet error");
+                continue;
+            }
+            av_packet_unref(packet);
+            int got_picture = avcodec_receive_frame(pcodecCtx, pFrame);
+            if (got_picture < 0){
+                printf("avcodec_receive_frame error");
+                continue;
+            }
+            sws_scale(img_convert_ctx,pFrame->data, pFrame->linesize, 0,
+                      codecParameters->height,
+                      pFrameRGB->data, pFrameRGB->linesize);
+            cv::Mat mrgb(cv::Size(codecParameters->width,codecParameters->height),CV_8UC3);
+            mrgb.data = (unsigned char *) pFrameRGB->data[0];
+
+        }
+
+    }
+
+
+
 
     // 如果是输入文件 flv可以不传，可以从文件中判断。如果是流则必须传
     //打开输出流
