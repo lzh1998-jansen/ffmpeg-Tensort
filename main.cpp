@@ -109,6 +109,7 @@ int main(int argc, char **argv) {
     printf("video width %d\n",codecParameters->width);
     printf("video height %d\n",codecParameters->height);
     AVCodec *pcodec = avcodec_find_decoder(codecParameters->codec_id);
+    //编码器上下文函数
     AVCodecContext *pcodecCtx = avcodec_alloc_context3(pcodec);
     //打开编码器
     ret = avcodec_open2(pcodecCtx, pcodec, NULL);
@@ -151,10 +152,10 @@ int main(int argc, char **argv) {
         return -1;
     }
     //计算这个格式的图片，需要多少字节来存储
-    int picture_size = av_image_get_buffer_size(AV_PIX_FMT_NV21, codecParameters->width, codecParameters->height, 1);
+    int picture_size = av_image_get_buffer_size(AV_PIX_FMT_YUV420P, codecParameters->width, codecParameters->height, 1);
     uint8_t *out_buff = (uint8_t *) av_malloc(picture_size * sizeof(uint8_t));
-    av_image_fill_arrays(picture->data, picture->linesize, out_buff, AV_PIX_FMT_NV21, picture->width, picture->height,1);
-    //这个函数 是缓存转换格式，可以不用 以为上面已经设置了AV_PIX_FMT_NV21
+    av_image_fill_arrays(picture->data, picture->linesize, out_buff, AV_PIX_FMT_YUV420P, picture->width, picture->height,1);
+    //这个函数 是缓存转换格式，可以不用 以为上面已经设置了AV_PIX_FMT_NV21/AV_PIX_FMT_YUV420P
     SwsContext *img_convert_ctx = sws_getContext(codecParameters->width, codecParameters->height, AV_PIX_FMT_NV21,
                                                  codecParameters->width, codecParameters->height, AV_PIX_FMT_RGB24, 4,
                                                  NULL, NULL, NULL);
@@ -175,8 +176,11 @@ int main(int argc, char **argv) {
             sws_scale(img_convert_ctx,pFrame->data, pFrame->linesize, 0,
                       codecParameters->height,
                       pFrameRGB->data, pFrameRGB->linesize);
-            cv::Mat mrgb(cv::Size(codecParameters->width,codecParameters->height),CV_8UC3);
-            mrgb.data = (unsigned char *) pFrameRGB->data[0];
+            cv::Mat rgb_img(cv::Size(codecParameters->width,codecParameters->height),CV_8UC3);
+            rgb_img.data = (unsigned char *) pFrameRGB->data[0];
+            //rgb 2 bgr
+            cv::Mat bgr_img;
+            cv::cvtColor(rgb_img, bgr_img,cv::COLOR_RGB2BGR);
 
         }
 
